@@ -2,10 +2,13 @@
 NURBS - Non-uniform rational B-spline visualization
 
 ### Запуск
-Запустить `nurbs.py` без аргументов
+
+1. Запустить `nurbs.py` без аргументов. 
+2. Стрелками "влево"/"вправо" перемещать визуализируемую точку (отмечена красным цветом). При желании можно перетаскивать мышью контрольные точки (отмечены зелёным цветом).
 
 ### Пояснение
 Средствами PyQt и c помощью de Boor's алгоритма создан простой визуализатор NURBS сплайнов. Алгоритм создан для обычных B-сплайнов, однако для перехода к NURBS достаточно:
+
 1. Перевести контрольные точки в пространство большей размерности (положить новую координату равной 1)
 2. Умножить компоненты контрольных точек на веса
 3. Применить алгоритм для B-сплайна
@@ -13,14 +16,17 @@ NURBS - Non-uniform rational B-spline visualization
 
 Здесь этот процесс описан подробнее: https://www.researchgate.net/publication/221538041_If_you_know_b-splines_well_you_also_nnow_NURBS
 
-### Примечания:
-- Контрольные точки и веса задаются в коде
-- Пользователь имеет возможность перестаскивать контрольные точки мышью. При этом происходит перестроение сплайна
+Контрольные точки (points), веса (weights), узлы (knots) задаются в коде.
 
-### Примеры
+### Пример
 
-#### Обычный B-spline
-![](https://github.com/Nikitagritsaenko/NURBS-visualization/blob/master/screenshots/b_spline.JPG)
+Пусть заданы следующие параметры NURBS:
 
-#### NURBS
-![](https://github.com/Nikitagritsaenko/NURBS-visualization/blob/master/screenshots/nurbs.JPG)
+```python
+weights = [2.0, 1.0, 1.0, 2.0]
+knots = [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]
+degree = 3
+```
+Получим следующий вывод:
+
+![](https://github.com/Nikitagritsaenko/NURBS-visualization/blob/master/nurbs.gif)
