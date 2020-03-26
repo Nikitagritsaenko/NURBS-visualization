@@ -15,24 +15,27 @@ class NurbsDrawer(QtWidgets.QMainWindow):
 
     # define all NURBS params
     points = [ 
-              (-300, -200, 1),
-              (-200, 200, 1),
-              (200, 200, 1),
-              (300, -200, 1), 
+              (-240, -220, 1),
+              (-330, -40, 1),
+              (-230, 250, 1),
+              (40, 270, 1),
+              (190, 80, 1),
+              (-60, -270, 1),
+              (170, -60, 1),
             ]
-    weights = [2.0, 1.0, 1.0, 2.0]
-    knots = [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]
-    degree = 3
+    weights = [2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0]
+    knots = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    degree = 6
 
     # define visualizator params
     draw_step = 0.001
     visualize_step = 0.01
-    curr_x = 0.4
-    colors = [Qt.blue, Qt.magenta, Qt.cyan, Qt.darkYellow]
+    curr_x = 0.5
+    colors = [Qt.green, Qt.magenta, Qt.cyan, Qt.darkYellow, Qt.blue, Qt.darkGreen]
 
     def paintEvent(self, e):
         self.qp.begin(self)
-        
+
         for p in self.points:
             self.draw_circle(p[0], p[1], 3, Qt.green)
 
@@ -52,6 +55,7 @@ class NurbsDrawer(QtWidgets.QMainWindow):
         self.qp.end()
 
     def mouseMoveEvent(self, e):
+        print(e.x(), e.y())
         min_dist = (width ** 2 + height ** 2) ** 0.5
         touched_point_idx = 0
 
@@ -67,7 +71,7 @@ class NurbsDrawer(QtWidgets.QMainWindow):
         if (min_dist < 75):
             self.points[touched_point_idx] = (e.x() - width/2, -e.y() + height/2, 1)
             self.update()
-                
+
     def keyPressEvent(self, event):
          if event.key() == Qt.Key_Left:
              if (self.curr_x - self.visualize_step >= 0):
@@ -95,66 +99,67 @@ class NurbsDrawer(QtWidgets.QMainWindow):
         self.qp.drawPoint(x,y)
 
     def draw_circle(self, x, y, r, color):
-        #self.qp.setBrush(color)
         self.qp.setPen(QPen(color, 9))
         x0 = x + width/2
         y0 = -y + height/2
         self.qp.drawEllipse(x0, y0, r, r)
-        
-    def deBoor(self, k: int, x: int, t, c, p: int, visualize: bool):
-        
-        d = [c[j + k - p] for j in range(0, p+1)]
 
-        for r in range(1, p+1):
-            for j in range(p, r-1, -1):
-                alpha = (x - t[j+k-p]) / (t[j+1+k-r] - t[j+k-p])
 
-                if visualize:
-                    self.draw_line(d[j-1][0] / d[j-1][2], 
-                                   d[j-1][1] / d[j-1][2], 
-                                   d[j][0] / d[j][2], 
-                                   d[j][1] / d[j][2])
+    def deBoor(self, r, p, i, x, t, c, visualize):
+        if r == 0:
+            return c[i]
+        else:
+            alpha = (x - t[i]) / (t[i+p+1-r] - t[i])
+            p1 = self.deBoor(r - 1, p, i - 1, x, t, c, visualize)
+            p2 = self.deBoor(r - 1, p, i, x, t, c, visualize)
+            if visualize:
+                self.draw_line(p1[0] / p1[2], 
+                               p1[1] / p1[2], 
+                               p2[0] / p2[2], 
+                               p2[1] / p2[2])
 
-                d[j] = (1.0 - alpha) * d[j-1] + alpha * d[j]
+                self.draw_circle(p1[0] / p1[2],
+                                 p1[1] / p1[2], 
+                                 3,
+                                 self.colors[r-1])
 
-                if visualize:
-                    self.draw_circle(d[j][0] / d[j][2],
-                                     d[j][1] / d[j][2], 
-                                     3,
-                                     self.colors[r])
-
-        if visualize:
-            self.draw_circle(d[p][0] / d[p][2], 
-                             d[p][1] / d[p][2], 
-                             3, 
-                             Qt.red)
-            self.update()
-
-        return d[p]
+                self.draw_circle(p2[0] / p2[2],
+                                 p2[1] / p2[2], 
+                                 3,
+                                 self.colors[r-1])
+            return p1 * (1 - alpha) + p2 * alpha
 
     def draw_deBoor(self, points, x_visual):
         points = np.asarray(points)
 
+        nurbs_points = [point for point in points]
+
+        for i in range(0, len(points)):
+            nurbs_points[i] = (int(nurbs_points[i][0] * self.weights[i]), 
+                               int(nurbs_points[i][1] * self.weights[i]), 
+                               int(nurbs_points[i][2] * self.weights[i]))
+
+        nurbs_points = np.asarray(nurbs_points)
+
         for x in np.arange(0, 1, self.draw_step):
             k = 0
-            for i in range(1, len(points) + 1):
+            for i in range(1, len(self.knots)):
                 if (x < self.knots[i] and x >= self.knots[i-1]):
                     k = i-1
                     break
 
-            nurbs_points = [point for point in points]
-
-            for i in range(0, len(points)):
-                nurbs_points[i] = (int(nurbs_points[i][0] * self.weights[i]), 
-                                   int(nurbs_points[i][1] * self.weights[i]), 
-                                   int(nurbs_points[i][2] * self.weights[i]))
-
-            nurbs_points = np.asarray(nurbs_points)
-                
+            visualize = False
             if np.abs(x - x_visual) < self.draw_step:
-                new_point = self.deBoor(k, x, self.knots, nurbs_points, self.degree, visualize=True)
-            else:
-                new_point = self.deBoor(k, x, self.knots, nurbs_points, self.degree, visualize=False)
+                visualize = True
+        
+            new_point = self.deBoor(self.degree, self.degree, k, x, self.knots, nurbs_points, visualize)
+
+            if visualize:
+                self.draw_circle(new_point[0] / new_point[2], 
+                                 new_point[1] / new_point[2], 
+                                 3, 
+                                 Qt.red)
+                self.update()
 
             self.draw_pixel(new_point[0] // new_point[2], 
                             new_point[1] // new_point[2])
@@ -165,6 +170,6 @@ def main(args):
     ex.resize(width, height)
     ex.show()
     app.exec_()
-    
+
 if __name__=='__main__':
     main(sys.argv[1:])
