@@ -23,10 +23,19 @@ NURBS - Non-uniform rational B-spline visualization
 Пусть заданы следующие параметры NURBS:
 
 ```python
-weights = [2.0, 1.0, 1.0, 2.0]
-knots = [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]
-degree = 3
+points = [ 
+              (-240, -220, 1),
+              (-330, -40, 1),
+              (-230, 250, 1),
+              (40, 270, 1),
+              (190, 80, 1),
+              (-60, -270, 1),
+              (170, -60, 1),
+            ]
+    weights = [2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0]
+    knots = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    degree = 6
 ```
 Получим следующий вывод:
 
-![](https://github.com/Nikitagritsaenko/NURBS-visualization/blob/master/nurbs.gif)
+![](https://github.com/Nikitagritsaenko/NURBS-visualization/blob/develop/nurbs1.gif)
